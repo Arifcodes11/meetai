@@ -28,6 +28,7 @@ const formSchema = z.object({
 export const SignInView = () => {
 
 const router = useRouter();
+const [pending,setPending]=useState(false);
 const [error,setError] = useState<string | null> (null)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,6 +39,7 @@ const [error,setError] = useState<string | null> (null)
   });
   const onSubmit = async (data:z.infer<typeof formSchema>)=>{
     setError(null);
+    setPending(true);
 
     authClient.signIn.email(
         {
@@ -46,6 +48,7 @@ const [error,setError] = useState<string | null> (null)
         },
         {
             onSuccess: () => {
+                setPending(false);
                 router.push("/");
             },
             onError: ({error}) => {
@@ -113,7 +116,9 @@ const [error,setError] = useState<string | null> (null)
                     <AlertTitle>{error}</AlertTitle>
                   </Alert>
                 )}
-                <Button type="submit" className="w-full">
+                <Button 
+                disabled={pending}
+                type="submit" className="w-full">
                   Sign in
                 </Button>
                 <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -122,10 +127,10 @@ const [error,setError] = useState<string | null> (null)
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" type="button" className="w-full">
+                  <Button disabled={pending} variant="outline" type="button" className="w-full">
                     Google
                   </Button>
-                  <Button variant="outline" type="button" className="w-full">
+                  <Button disabled={pending}variant="outline" type="button" className="w-full">
                     Github
                   </Button>
                 </div>
