@@ -4,14 +4,14 @@ import { z } from "zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { FaGithub,FaGoogle} from "react-icons/fa";
 import { OctagonAlertIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertTitle} from "@/components/ui/alert";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -26,10 +26,8 @@ const formSchema = z.object({
   password: z.string().min(1, { message: "Password is required" }),
 });
 export const SignInView = () => {
-
-const router = useRouter();
-const [pending,setPending]=useState(false);
-const [error,setError] = useState<string | null> (null)
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -37,24 +35,43 @@ const [error,setError] = useState<string | null> (null)
       password: "",
     },
   });
-  const onSubmit = async (data:z.infer<typeof formSchema>)=>{
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setError(null);
     setPending(true);
 
     authClient.signIn.email(
-        {
-            email: data.email,
-            password: data.password,
+      {
+        email: data.email,
+        password: data.password,
+        callbackURL:"/",
+      },
+      {
+        onSuccess: () => {
+          setPending(false);
         },
-        {
-            onSuccess: () => {
-                setPending(false);
-                router.push("/");
-            },
-            onError: ({error}) => {
-                setError(error.message)
-            }
-        }
+        onError: ({ error }) => {
+          setError(error.message);
+        },
+      }
+    );
+  };
+  const onSocial = async (provider: "github" | "google") => {
+    setError(null);
+    setPending(true);
+
+    authClient.signIn.social(
+      {
+        provider: provider,
+        callbackURL:"/",
+      },
+      {
+        onSuccess: () => {
+          setPending(false);
+        },
+        onError: ({ error }) => {
+          setError(error.message);
+        },
+      }
     );
   };
   return (
@@ -116,9 +133,7 @@ const [error,setError] = useState<string | null> (null)
                     <AlertTitle>{error}</AlertTitle>
                   </Alert>
                 )}
-                <Button 
-                disabled={pending}
-                type="submit" className="w-full">
+                <Button disabled={pending} type="submit" className="w-full">
                   Sign in
                 </Button>
                 <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -127,11 +142,23 @@ const [error,setError] = useState<string | null> (null)
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <Button disabled={pending} variant="outline" type="button" className="w-full">
-                    Google
+                  <Button
+                    disabled={pending}
+                    onClick={() => onSocial("google")}
+                    variant="outline"
+                    type="button"
+                    className="w-full"
+                  >
+                    <FaGoogle/>
                   </Button>
-                  <Button disabled={pending}variant="outline" type="button" className="w-full">
-                    Github
+                  <Button
+                    disabled={pending}
+                    onClick={() => onSocial("github")}
+                    variant="outline"
+                    type="button"
+                    className="w-full"
+                  >
+                    <FaGithub/>
                   </Button>
                 </div>
                 <div className="text-center text-sm">
@@ -154,7 +181,8 @@ const [error,setError] = useState<string | null> (null)
         </CardContent>
       </Card>
       <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-                By clicking continue, you agree to our <a href="#">Terms of service</a> and <a href="#"> Privacy Policy</a>
+        By clicking continue, you agree to our <a href="#">Terms of service</a>{" "}
+        and <a href="#"> Privacy Policy</a>
       </div>
     </div>
   );
