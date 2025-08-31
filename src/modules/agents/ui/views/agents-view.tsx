@@ -5,12 +5,26 @@ import { useTRPC } from "@/trpc/client";
 import { LoadingState } from "@/components/loading-state";
 import { ErrorState } from "@/components/error-state";
 
+
 export const AgentsView = () => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.agents.getMany.queryOptions());
 
-  return <div>{JSON.stringify(data, null, 2)}</div>;
-
+  return (
+    <div>
+      {/* <ResponsiveDialog
+        title="Responsove test"
+        description="Responsive description"
+        open
+        onOpenChange={() =>{}}
+      >
+        <Button>
+          Some action
+        </Button>
+      </ResponsiveDialog > */}
+      {JSON.stringify(data, null, 2)}
+    </div>
+  );
   // Add error and data rendering logic as needed
 };
 
@@ -26,8 +40,8 @@ export const AgentsViewLoading = () => {
 export const AgentsViewError = () => {
   return (
     <ErrorState
-          title="Error Loading Agents"
-          description="Something went wrong"
-        />
-  )
-}
+      title="Error Loading Agents"
+      description="Something went wrong"
+    />
+  );
+};
