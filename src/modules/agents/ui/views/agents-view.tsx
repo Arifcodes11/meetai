@@ -4,6 +4,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { LoadingState } from "@/components/loading-state";
 import { ErrorState } from "@/components/error-state";
+import { DataTable } from "../components/data-table";
+import { columns } from "../components/columns";
+import { EmptyState } from "@/components/empty-state";
 
 
 export const AgentsView = () => {
@@ -11,18 +14,14 @@ export const AgentsView = () => {
   const { data } = useSuspenseQuery(trpc.agents.getMany.queryOptions());
 
   return (
-    <div>
-      {/* <ResponsiveDialog
-        title="Responsove test"
-        description="Responsive description"
-        open
-        onOpenChange={() =>{}}
-      >
-        <Button>
-          Some action
-        </Button>
-      </ResponsiveDialog > */}
-      {JSON.stringify(data, null, 2)}
+    <div className="flex-1 pb-4 px-4 md:px-8 flex flex-col gap-y-4">
+      <DataTable data={data} columns={columns}/>
+      {data.length === 0 && (
+        <EmptyState
+          title = "create your first agent"
+          description="Create an agent to join your meetings,each agent will follow your instructions and can interact with participants during the call."
+        />
+      )}
     </div>
   );
   // Add error and data rendering logic as needed
