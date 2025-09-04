@@ -1,16 +1,19 @@
-import Link from "next/link"; // 'Link' is defined but never used.
-import Image from "next/image"; // 'Image' is defined but never used.
+import Link from "next/link";
+import Image from "next/image";
 import {
-  CallControls, // 'CallControls' is defined but never used.
-  SpeakerLayout, // 'SpeakerLayout' is defined but never used.
+  CallControls,
+  SpeakerLayout,
 } from "@stream-io/video-react-sdk";
+import { AudioAgent } from "./audio-agent";
 
 interface Props {
   onLeave: () => void;
   meetingName: string;
-};
+  agentId?: string;
+  agentInstructions?: string;
+}
 
-export const CallActive = ({ onLeave, meetingName }: Props) => {
+export const CallActive = ({ onLeave, meetingName, agentId, agentInstructions }: Props) => {
   return (
     <div className="flex flex-col justify-between p-4 h-full text-white">
       <div className="bg-[#101213] rounded-full p-4 flex items-center gap-4">
@@ -25,6 +28,14 @@ export const CallActive = ({ onLeave, meetingName }: Props) => {
       <div className="bg-[#101213] rounded-full px-4">
         <CallControls onLeave={onLeave}/>
       </div>
+      
+      {/* Audio Agent Component */}
+      {agentId && agentInstructions && (
+        <AudioAgent 
+          agentId={agentId} 
+          agentInstructions={agentInstructions} 
+        />
+      )}
     </div>
   );
 };

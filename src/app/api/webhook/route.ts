@@ -1,9 +1,6 @@
 import { and, eq, not } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import {
-  //CallEndedEvent,
-  //CallTranscriptionReadyEvent,
-  //CallRecordingReadyEvent,
   CallSessionParticipantLeftEvent,
   CallSessionStartedEvent,
 } from "@stream-io/node-sdk";
@@ -25,11 +22,13 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
   const body = await req.text();
 
   if (!verifySignatureWithSDK(body, signature)) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
+
   let payload: unknown;
   try {
     payload = JSON.parse(body) as Record<string, unknown>;
@@ -54,7 +53,6 @@ export async function POST(req: NextRequest) {
         and(
           eq(meetings.id, meetingId),
           not(eq(meetings.status, "completed")),
-          not(eq(meetings.status, "active")),
           not(eq(meetings.status, "cancelled")),
           not(eq(meetings.status, "processing"))
         )
@@ -63,6 +61,7 @@ export async function POST(req: NextRequest) {
     if (!existingMeeting) {
       return NextResponse.json({ error: "Meeting not found" }, { status: 404 });
     }
+
     await db
       .update(meetings)
       .set({
@@ -80,16 +79,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
-    const call = streamVideo.video.call("default", meetingId);
-    const realtimeClient = await streamVideo.video.connectOpenAi({
-      call,
-      openAiApiKey: process.env.OPENAI_API_KEY!,
-      agentUserId: existingAgent.id,
-    });
+    try {
+      // Register the agent as a user in Stream Video
+      await streamVideo.upsertUsers([
+        {
+          id: existingAgent.id,
+          name: existingAgent.name,
+          role: "admin",
+          image: `https://api.dicebear.com/7.x/bottts/svg?seed=${existingAgent.name}`,
+        },
+      ]);
 
-    realtimeClient.updateSession({
-      instructions: existingAgent.instructions,
-    });
+      console.log(`Agent ${existingAgent.id} registered for meeting ${meetingId}`);
+      
+    } catch (error) {
+      console.error(`Failed to connect agent to meeting ${meetingId}:`, error);
+      return NextResponse.json(
+        { error: "Failed to connect agent", details: error instanceof Error ? error.message : "Unknown error" },
+        { status: 500 }
+      );
+    }
   } else if (eventType === "call.session_participant_left") {
     const event = payload as CallSessionParticipantLeftEvent;
     const meetingId = event.call_cid.split(":")[1];
@@ -97,8 +106,14 @@ export async function POST(req: NextRequest) {
     if (!meetingId) {
       return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
     }
-    const call = streamVideo.video.call("default", meetingId);
-    await call.end();
+    
+    try {
+      const call = streamVideo.video.call("default", meetingId);
+      await call.end();
+    } catch (error) {
+      console.error(`Failed to end call ${meetingId}:`, error);
+    }
   }
+
   return NextResponse.json({ status: "ok" });
 }

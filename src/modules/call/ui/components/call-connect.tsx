@@ -13,12 +13,21 @@ import {
 } from "@stream-io/video-react-sdk";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { CallUI } from "./call-ui";
+import { AgentClient } from "./agent-client";
+
 interface Props {
   meetingId: string;
   meetingName: string;
   userId: string;
   userName: string;
   userImage: string;
+  meetingData: {
+    agent?: {
+      id: string;
+      name: string;
+      instructions: string;
+    };
+  };
 }
 
 export const CallConnect = ({
@@ -27,11 +36,14 @@ export const CallConnect = ({
   userId,
   userName,
   userImage,
+  meetingData,
 }: Props) => {
   const trpc = useTRPC();
   const { mutateAsync: generateToken } = useMutation(
     trpc.meetings.generateToken.mutationOptions()
   );
+
+  // Meeting data is now passed as a prop
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
@@ -83,6 +95,15 @@ export const CallConnect = ({
     <StreamVideo client={client}>
         <StreamCall call={call}>
             <CallUI meetingName={meetingName}/>
+            {/* Agent Client - handles agent connection */}
+            {meetingData?.agent && (
+              <AgentClient
+                meetingId={meetingId}
+                agentId={meetingData.agent.id}
+                agentName={meetingData.agent.name}
+                agentInstructions={meetingData.agent.instructions}
+              />
+            )}
         </StreamCall>
     </StreamVideo>
   );
