@@ -8,10 +8,9 @@ import { CallConnect } from "./call-connect";
 interface Props {
   meetingId: string;
   meetingName: string;
-  meetingData: any;
 }
 
-export const CallProvider = ({ meetingId, meetingName, meetingData }: Props) => {
+export const CallProvider = ({ meetingId, meetingName }: Props) => {
   const { data, isPending } = authClient.useSession();
 
   if (!data || isPending) {
@@ -21,7 +20,6 @@ export const CallProvider = ({ meetingId, meetingName, meetingData }: Props) => 
       </div>
     );
   }
-  
   return (
     <CallConnect
       meetingId={meetingId}
@@ -32,7 +30,6 @@ export const CallProvider = ({ meetingId, meetingName, meetingData }: Props) => 
         data.user.image ??
         generateAvatarUri({ seed: data.user.name, variant: "initials" })
       }
-      meetingData={meetingData}
     />
   );
 };
