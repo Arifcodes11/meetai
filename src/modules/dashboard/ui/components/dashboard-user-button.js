@@ -1,2 +1,3 @@
-// Re-export from the original file to ensure case sensitivity is not an issue
-export * from './dashboard-user-button.tsx';
+// Re-export the component directly
+import { DashboardUserButton } from './dashboard-user-button.tsx';
+export { DashboardUserButton };
