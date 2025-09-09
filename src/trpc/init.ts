@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { headers } from "next/headers";
 import { cache } from "react";
-import { polarClient } from "@polar-sh/better-auth";
+import { Polar } from "@polar-sh/sdk";
 import { db } from "@/db";
 import { agents, meetings } from "@/db/schema";
 import { count, eq } from "drizzle-orm";
@@ -37,6 +37,9 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
   }
 
   return next({ ctx: { ...ctx, auth: session } });
+});
+export const polarClient = new Polar({
+  accessToken: process.env.POLAR_ACCESS_TOKEN!, // make sure you set this in .env
 });
 export const premiumProcedure = (entity: "meetings" | "agents") =>
   protectedProcedure.use(async ({ ctx, next }) => {
