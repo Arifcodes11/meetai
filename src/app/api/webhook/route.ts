@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 import { and, eq, not } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
@@ -16,8 +15,12 @@ import { streamVideo } from "@/lib/stream-video";
 import { inngest } from "@/inngest/client";
 import { generateAvatarUri } from "@/lib/avatar";
 import { streamChat } from "@/lib/stream-chat";
+import { geminiChat } from "@/lib/gemini-chat";
+// Note: geminiStream is imported but not used in the current implementation
+// import { geminiStream } from "@/lib/gemini-stream";
 
-const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+// Note: We're not using the mock OpenAI client currently as Stream Video doesn't support custom clients
+// const openaiClient = geminiStream.createMockOpenAIClient();
 
 function verifySignatureWithSDK(body: string, signature: string): boolean {
   return streamVideo.verifyWebhook(body, signature);
@@ -89,11 +92,16 @@ export async function POST(req: NextRequest) {
     }
 
     const call = streamVideo.video.call("default", meetingId);
+    // Use Stream Video with Gemini API key
     const realtimeClient = await streamVideo.video.connectOpenAi({
       call,
-      openAiApiKey: process.env.OPENAI_API_KEY!,
+      openAiApiKey: process.env.GEMINI_API_KEY!, // Using Gemini API key instead
       agentUserId: existingAgent.id,
     });
+    
+    // Note: Stream Video doesn't directly support Gemini
+    // This is a workaround that may not fully work
+    // For production, consider using Stream's native OpenAI integration
 
     realtimeClient.updateSession({
       instructions: existingAgent.instructions,
@@ -214,13 +222,13 @@ export async function POST(req: NextRequest) {
           role: message.user?.id === existingAgent.id ? "assistant" : "user",
           content: message.text || "",
         }));
-      const GPTResponse = await openaiClient.chat.completions.create({
+      const GPTResponse = await geminiChat.completions.create({
         messages: [
           { role: "system", content: instructions },
           ...previousMessages,
           { role: "user", content: text },
         ],
-        model: "gpt-4o",
+        model: "gemini-1.5-flash", // Using Gemini model instead of GPT
       });
 
       const GPTResponseText = GPTResponse.choices[0].message.content;
