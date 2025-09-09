@@ -38,8 +38,38 @@ export const DashboardUserButton = () => {
       },
     });
   };
-  if (isPending || !data?.user) {
-    return null;
+  
+  // Show a placeholder button if the session is pending or user data is not available
+  if (isPending) {
+    return (
+      <div className="rounded-lg border border-border/10 p-3 w-full flex items-center justify-between bg-white/5 hover:bg-white/10 overflow-hidden gap-x-2">
+        <div className="animate-pulse bg-white/10 h-9 w-9 rounded-full"></div>
+        <div className="flex flex-col gap-0.5 text-left overflow-hidden flex-1 min-w-0">
+          <div className="animate-pulse bg-white/10 h-4 w-3/4 rounded"></div>
+          <div className="animate-pulse bg-white/10 h-3 w-1/2 rounded"></div>
+        </div>
+        <div className="animate-pulse bg-white/10 h-4 w-4 rounded"></div>
+      </div>
+    );
+  }
+  
+  // Fallback for when user data is not available
+  if (!data?.user) {
+    return (
+      <button 
+        onClick={() => router.push('/sign-in')} 
+        className="rounded-lg border border-border/10 p-3 w-full flex items-center justify-between bg-white/5 hover:bg-white/10 overflow-hidden gap-x-2"
+      >
+        <div className="bg-white/10 h-9 w-9 rounded-full flex items-center justify-center">
+          <span className="text-xs">?</span>
+        </div>
+        <div className="flex flex-col gap-0.5 text-left overflow-hidden flex-1 min-w-0">
+          <p className="text-sm truncate w-full">Sign In</p>
+          <p className="text-xs truncate w-full">Not logged in</p>
+        </div>
+        <ChevronDownIcon className="size-4 shrink-0" />
+      </button>
+    );
   }
   if (isMobile) {
     return (
