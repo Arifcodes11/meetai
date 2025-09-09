@@ -26,8 +26,18 @@ import { meetingsInsertSchema, meetingsUpdateSchema } from "../schemas";
 import { MeetingStatus, StreamTranscriptItem } from "../types";
 import { streamVideo } from "@/lib/stream-video";
 import { generateAvatarUri } from "@/lib/avatar";
+import { streamChat } from "@/lib/stream-chat";
 
 export const meetingsRouter = createTRPCRouter({
+  generateChatToken: protectedProcedure.mutation(async ({ ctx }) => {
+    const token = streamChat.createToken(ctx.auth.user.id);
+    await streamChat.upsertUser({
+      id: ctx.auth.user.id,
+      role: "admin",
+    });
+
+    return token;
+  }),
   getTranscript: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
@@ -90,7 +100,7 @@ export const meetingsRouter = createTRPCRouter({
           (speaker) => speaker.id === item.speaker_id
         );
 
-        if(!speaker) {
+        if (!speaker) {
           return {
             ...item,
             user: {
@@ -110,8 +120,8 @@ export const meetingsRouter = createTRPCRouter({
             image: speaker.image,
           },
         };
-      }) 
-            return transriptWithSpeakers;
+      });
+      return transriptWithSpeakers;
     }),
   generateToken: protectedProcedure.mutation(async ({ ctx }) => {
     await streamVideo.upsertUsers([

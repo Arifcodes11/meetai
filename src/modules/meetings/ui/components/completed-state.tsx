@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { formatDuration } from "@/lib/utils";
+import { ChatProvider } from "./chat-provider";
 import { Transcript } from "./transcript";
 interface Props {
   data: MeetingGetOne;
@@ -58,6 +59,9 @@ export const CompletedState = ({ data }: Props) => {
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
+        <TabsContent value="chat">
+         <ChatProvider meetingId={data.id} meetingName={data.name}/>
+        </TabsContent>
         <TabsContent value="transcript">
           <Transcript meetingId={data.id}/>
         </TabsContent>
