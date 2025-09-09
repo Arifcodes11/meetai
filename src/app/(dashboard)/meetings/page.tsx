@@ -64,7 +64,7 @@ import {
 } from "@/modules/meetings/ui/views/meetings-view";
 
 type PageProps = {
-  searchParams: Awaited<SearchParams>;
+  searchParams: Promise<SearchParams>;
 };
 
 const Page = async ({ searchParams }: PageProps) => {

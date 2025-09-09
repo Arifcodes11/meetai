@@ -57,11 +57,11 @@ import {
 } from "@/modules/meetings/ui/views/meeting-id-view";
 
 interface Props {
-  params: Awaited<{ meetingId: string }>;
+  params: Promise<{ meetingId: string }>;
 }
 
 const Page = async ({ params }: Props) => {
-  const { meetingId } = params;
+  const { meetingId } = await params;
   const session = await auth.api.getSession({
     headers: await headers(),
   });

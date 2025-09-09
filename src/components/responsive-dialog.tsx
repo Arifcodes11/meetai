@@ -22,7 +22,7 @@ interface ResponsiveDialogProps {
     description: string;
     children: React.ReactNode;
     open: boolean;
-    onOpenChange: (open: boolean)=> VoidFunction;
+    onOpenChange: (open: boolean) => void;
 }
 
 export const ResponsiveDialog = ({
