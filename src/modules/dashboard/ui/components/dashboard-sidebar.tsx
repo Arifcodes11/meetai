@@ -19,7 +19,7 @@ import {
   //SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
-import { DashboardUserButton } from "./DashboardUserButton";
+import { DashboardUserButton } from "./dashboard-user-button";
 import { DashboardTrial } from "./dashboard-trial";
 
 const firstSection = [
