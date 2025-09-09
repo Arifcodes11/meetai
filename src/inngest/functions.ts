@@ -28,27 +28,26 @@ Example:
 - Feature X automatically does Y
 - Mention of integration with Z
   `.trim(),
-  model: openai({model: "gpt-4o", apiKey: process.env.OPENAI_API_KEY})
+  model: openai({ model: "gpt-4o", apiKey: process.env.OPENAI_API_KEY }),
 });
 export const meetingsProcessing = inngest.createFunction(
   { id: "meetings/processing" },
   { event: "meetings/processing" },
-  //   async ({ event, step }) => {
-  //   const response = await step.run("fetch-transcript", async () => {
-  //     return fetch(event.data.transcriptUrl).then((res) => res.text());
-  //   });
-
-  //   const transcript = await step.run("parse-transcript", async () => {
-  //     return JSONL.parse<StreamTranscriptItem>(response);
-  //   });
-  // },
   async ({ event, step }) => {
-    const response = await step.fetch(event.data.transcriptUrl);
+    const response = await step.run("fetch-transcript", async () => {
+      return fetch(event.data.transcriptUrl).then((res) => res.text());
+    });
 
     const transcript = await step.run("parse-transcript", async () => {
-      const text = await response.text();
-      return JSONL.parse<StreamTranscriptItem>(text);
+      return JSONL.parse<StreamTranscriptItem>(response);
     });
+    // async ({ event, step }) => {
+    //   const response = await step.fetch(event.data.transcriptUrl);
+
+    //   const transcript = await step.run("parse-transcript", async () => {
+    //     const text = await response.text();
+    //     return JSONL.parse<StreamTranscriptItem>(text);
+    //   });
 
     const transcriptWithSpeakers = await step.run("add-speakers", async () => {
       const speakerIds = [
@@ -99,7 +98,8 @@ export const meetingsProcessing = inngest.createFunction(
     });
 
     const { output } = await summarizer.run(
-      "Summmarize the following transcript: " + JSON.stringify(transcriptWithSpeakers)
+      "Summmarize the following transcript: " +
+        JSON.stringify(transcriptWithSpeakers)
     );
 
     await step.run("save-summary", async () => {
@@ -109,7 +109,7 @@ export const meetingsProcessing = inngest.createFunction(
           summary: (output[0] as TextMessage).content as string,
           status: "completed",
         })
-        .where(eq(meetings.id, event.data.meetingId))
-    })
+        .where(eq(meetings.id, event.data.meetingId));
+    });
   }
 );
