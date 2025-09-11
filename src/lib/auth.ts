@@ -1,25 +1,28 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db"; // your drizzle instance
-import { polar,checkout,portal} from "@polar-sh/better-auth"; 
+import { polar, checkout, portal } from "@polar-sh/better-auth"; 
 
 import * as schema from "@/db/schema";
-import { polarClient} from "./polar";
+import { polarClient } from "./polar";
 
 export const auth = betterAuth({
 
-  plugins:[
-    polar({
-      client: polarClient,
-      createCustomerOnSignUp: true,
-      use: [
-        checkout({
-          authenticatedUsersOnly: true,
-          successUrl: "/upgrade",
-        }),
-        portal(),
-      ],
-    }),
+  plugins: [
+    // Only add Polar plugin if access token is provided
+    ...(process.env.POLAR_ACCESS_TOKEN ? [
+      polar({
+        client: polarClient,
+        createCustomerOnSignUp: true,
+        use: [
+          checkout({
+            authenticatedUsersOnly: true,
+            successUrl: "/upgrade",
+          }),
+          portal(),
+        ],
+      }),
+    ] : []),
   ],
   socialProviders: {
     github: {

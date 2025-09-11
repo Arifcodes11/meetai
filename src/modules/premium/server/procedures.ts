@@ -6,39 +6,54 @@ import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 
 export const premiumRouter = createTRPCRouter({
   getCurrentSubscription: protectedProcedure.query(async ({ ctx }) => {
-    const customer = await polarClient.customers.getStateExternal({
-      externalId: ctx.auth.user.id,
-    });
+    try {
+      const customer = await polarClient.customers.getStateExternal({
+        externalId: ctx.auth.user.id,
+      });
 
-    const subscription = customer.activeSubscriptions[0];
+      const subscription = customer.activeSubscriptions[0];
 
-    if (!subscription) {
+      if (!subscription) {
+        return null;
+      }
+
+      const product = await polarClient.products.get({
+        id: subscription.productId,
+      });
+      return product;
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
       return null;
     }
-
-    const product = await polarClient.products.get({
-      id: subscription.productId,
-    });
-    return product;
   }),
   getProducts: protectedProcedure.query(async () => {
-    const products = await polarClient.products.list({
-      isArchived: false,
-      isRecurring: true,
-      sorting: ["price_amount"],
-    });
+    try {
+      const products = await polarClient.products.list({
+        isArchived: false,
+        isRecurring: true,
+        sorting: ["price_amount"],
+      });
 
-    return products.result.items;
+      return products.result.items;
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      return [];
+    }
   }),
   getFreeUsage: protectedProcedure.query(async ({ ctx }) => {
-    const customer = await polarClient.customers.getStateExternal({
-      externalId: ctx.auth.user.id,
-    });
+    try {
+      const customer = await polarClient.customers.getStateExternal({
+        externalId: ctx.auth.user.id,
+      });
 
-    const subscription = customer.activeSubscriptions[0];
+      const subscription = customer.activeSubscriptions[0];
 
-    if (subscription) {
-      return null;
+      if (subscription) {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching customer state:", error);
+      // Continue with free usage check
     }
     const [userMeetings] = await db
       .select({
