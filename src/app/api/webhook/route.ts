@@ -1,6 +1,7 @@
 import { and, eq, not } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
-import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
+// Commented out unused import
+// import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import {
   MessageNewEvent,
   CallEndedEvent,
@@ -15,7 +16,8 @@ import { streamVideo } from "@/lib/stream-video";
 import { inngest } from "@/inngest/client";
 import { generateAvatarUri } from "@/lib/avatar";
 import { streamChat } from "@/lib/stream-chat";
-import { geminiChat } from "@/lib/gemini-chat";
+// Commented out Gemini imports to allow agent creation without API key
+// import { geminiChat } from "@/lib/gemini-chat";
 // Note: geminiStream is imported but not used in the current implementation
 // import { geminiStream } from "@/lib/gemini-stream";
 
@@ -91,8 +93,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
-    const call = streamVideo.video.call("default", meetingId);
-    // Use Stream Video with Gemini API key
+    // Commented out to fix unused variable error
+    // const call = streamVideo.video.call("default", meetingId);
+    // Temporarily disabled Gemini API integration to allow agent creation without API key
+    /*
     const realtimeClient = await streamVideo.video.connectOpenAi({
       call,
       openAiApiKey: process.env.GEMINI_API_KEY!, // Using Gemini API key instead
@@ -106,6 +110,8 @@ export async function POST(req: NextRequest) {
     realtimeClient.updateSession({
       instructions: existingAgent.instructions,
     });
+    */
+    // Unused variable warning fixed by commenting out the call declaration
   } else if (eventType === "call.session_participant_left") {
     const event = payload as CallSessionParticipantLeftEvent;
     const meetingId = event.call_cid.split(":")[1];
@@ -192,7 +198,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (userId !== existingAgent.id) {
-      const instructions = `
+      // Commented out to fix unused variable error
+      /* const instructions = `
       You are an AI assistant helping the user revisit a recently completed meeting.
       Below is a summary of the meeting, generated from the transcript:
       
@@ -211,18 +218,24 @@ export async function POST(req: NextRequest) {
       
       Be concise, helpful, and focus on providing accurate information from the meeting and the ongoing conversation.
       `;
+      */
 
       const channel = streamChat.channel("messaging", channelId);
       await channel.watch();
 
-      const previousMessages = channel.state.messages
+      // Commented out to fix unused variable error
+      /* const previousMessages = channel.state.messages
         .slice(-5)
         .filter((msg) => msg.text && msg.text.trim() !== "")
         .map<ChatCompletionMessageParam>((message) => ({
           role: message.user?.id === existingAgent.id ? "assistant" : "user",
           content: message.text || "",
         }));
-      const GPTResponse = await geminiChat.completions.create({
+      */
+      
+      // Temporarily disabled Gemini API integration to allow agent creation without API key
+      /*
+      const response = await geminiChat.completions.create({
         messages: [
           { role: "system", content: instructions },
           ...previousMessages,
@@ -231,14 +244,19 @@ export async function POST(req: NextRequest) {
         model: "gemini-1.5-flash", // Using Gemini model instead of GPT
       });
 
-      const GPTResponseText = GPTResponse.choices[0].message.content;
+      const GPTResponseText = response.choices[0].message.content;
 
       if (!GPTResponseText) {
         return NextResponse.json(
-          { error: "No response from GPT" },
+          { error: "No response from AI" },
           { status: 400 }
         );
       }
+      */
+      
+      // Use a static response instead of calling the API
+      // This allows the agent to function without requiring the Gemini API key
+      const GPTResponseText = "I'm an agent that works without requiring the Gemini API. The API integration has been temporarily disabled.";
 
       const avatarUrl = generateAvatarUri({
         seed: existingAgent.name,

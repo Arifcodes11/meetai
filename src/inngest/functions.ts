@@ -5,8 +5,11 @@ import { inngest } from "@/inngest/client";
 import { StreamTranscriptItem } from "@/modules/meetings/types";
 import { eq, inArray } from "drizzle-orm";
 import JSONL from "jsonl-parse-stringify";
-import { createGeminiAgent } from "@/lib/gemini-agent";
+// Temporarily disabled Gemini API integration to allow agent creation without API key
+// import { createGeminiAgent } from "@/lib/gemini-agent";
 
+// Commented out to allow agent creation without requiring Gemini API
+/*
 const summarizer = createGeminiAgent({
   name: "summarizer",
   system: `
@@ -31,6 +34,22 @@ Example:
 - Mention of integration with Z
   `.trim(),
 });
+*/
+
+// Simple mock summarizer object to replace the Gemini-based one
+const summarizer = {
+  // Using empty parameter list since we don't need the parameter
+  run: async () => {
+    return {
+      output: [
+        {
+          type: "text",
+          content: "Meeting summary functionality is disabled as Gemini API integration has been temporarily removed.",
+        },
+      ],
+    };
+  },
+};
 export const meetingsProcessing = inngest.createFunction(
   { id: "meetings/processing" },
   { event: "meetings/processing" },
@@ -42,14 +61,9 @@ export const meetingsProcessing = inngest.createFunction(
     const transcript = await step.run("parse-transcript", async () => {
       return JSONL.parse<StreamTranscriptItem>(response);
     });
-    // async ({ event, step }) => {
-    //   const response = await step.fetch(event.data.transcriptUrl);
 
-    //   const transcript = await step.run("parse-transcript", async () => {
-    //     const text = await response.text();
-    //     return JSONL.parse<StreamTranscriptItem>(text);
-    //   });
-
+    // Commented out since we're not using the transcript in the mock summarizer
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const transcriptWithSpeakers = await step.run("add-speakers", async () => {
       const speakerIds = [
         ...new Set(transcript.map((item) => item.speaker_id)),
@@ -97,11 +111,10 @@ export const meetingsProcessing = inngest.createFunction(
         };
       });
     });
+    // We're not using transcriptWithSpeakers with the mock summarizer
 
-    const { output } = await summarizer.run(
-      "Summmarize the following transcript: " +
-        JSON.stringify(transcriptWithSpeakers)
-    );
+    // Modified to match the new summarizer function signature that takes no arguments
+    const { output } = await summarizer.run();
 
     await step.run("save-summary", async () => {
       await db
