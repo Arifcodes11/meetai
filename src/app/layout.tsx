@@ -4,8 +4,7 @@ import "./globals.css";
 import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "sonner";
 import { NuqsAdapter } from "nuqs/adapters/next";
-import { AuthClientProvider } from "better-auth/react";
-import { authClient } from "@/lib/auth-client";
+
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,10 +25,8 @@ export default function RootLayout({
       <html lang="en">
         <body 
         className={`${inter.className} antialiased`}>
-          <AuthClientProvider client={authClient}>
-            <Toaster/>
-            {children}
-          </AuthClientProvider>
+          <Toaster/>
+          {children}
           </body>
       </html>
     </TRPCReactProvider>
