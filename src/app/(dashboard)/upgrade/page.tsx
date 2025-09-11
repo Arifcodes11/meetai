@@ -21,14 +21,15 @@ const Page = async () => {
 
   void queryClient.prefetchQuery(trpc.premium.getProducts.queryOptions());
 
-  return 
+  return (
   <HydrationBoundary state = {dehydrate(queryClient)}>
     <Suspense fallback={<UpgradeViewLoading/>}>
         <ErrorBoundary fallback={<UpgradeViewError/>}>
             <UpgradeView/>
         </ErrorBoundary>
     </Suspense>
-  </HydrationBoundary>;
+  </HydrationBoundary>
+  );
 };
 
 export default Page;
