@@ -93,25 +93,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
-    // Commented out to fix unused variable error
-    // const call = streamVideo.video.call("default", meetingId);
-    // Temporarily disabled Gemini API integration to allow agent creation without API key
-    /*
-    const realtimeClient = await streamVideo.video.connectOpenAi({
-      call,
-      openAiApiKey: process.env.GEMINI_API_KEY!, // Using Gemini API key instead
-      agentUserId: existingAgent.id,
-    });
+    // Re-enable agent joining functionality
+    const call = streamVideo.video.call("default", meetingId);
     
-    // Note: Stream Video doesn't directly support Gemini
-    // This is a workaround that may not fully work
-    // For production, consider using Stream's native OpenAI integration
-
-    realtimeClient.updateSession({
-      instructions: existingAgent.instructions,
-    });
-    */
-    // Unused variable warning fixed by commenting out the call declaration
+    try {
+      // Check if we have a valid API key for OpenAI integration
+      if (process.env.OPENAI_API_KEY) {
+        // Generate token for the agent - not needed for connectOpenAi
+        
+        // First ensure the agent user exists in Stream
+        await streamVideo.upsertUsers([{
+          id: existingAgent.id,
+          name: existingAgent.name,
+          role: "user",
+          image: generateAvatarUri({
+            seed: existingAgent.name,
+            variant: "botttsNeutral",
+          }),
+        }]);
+        
+        // Connect the agent to the call with OpenAI integration
+        const realtimeClient = await streamVideo.video.connectOpenAi({
+          call,
+          openAiApiKey: process.env.OPENAI_API_KEY,
+          agentUserId: existingAgent.id,
+        });
+        
+        realtimeClient.updateSession({
+          instructions: existingAgent.instructions,
+        });
+      } else {
+        console.log("No OpenAI API key found, agent will join without AI capabilities");
+        // Just add the agent to the call participants without AI capabilities
+        await streamVideo.upsertUsers([{
+          id: existingAgent.id,
+          name: existingAgent.name,
+          role: "user",
+          image: generateAvatarUri({
+            seed: existingAgent.name,
+            variant: "botttsNeutral",
+          }),
+        }]);
+      }
+    } catch (error) {
+      console.error("Error connecting agent to meeting:", error);
+      // Continue with the meeting even if agent connection fails
+    }
   } else if (eventType === "call.session_participant_left") {
     const event = payload as CallSessionParticipantLeftEvent;
     const meetingId = event.call_cid.split(":")[1];
